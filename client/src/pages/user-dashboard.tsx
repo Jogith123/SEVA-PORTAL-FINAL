@@ -47,14 +47,22 @@ export default function UserDashboard() {
   });
 
   const logoutMutation = useMutation({
-    mutationFn: () => apiRequest("/api/auth/logout", "POST"),
+    mutationFn: () => apiRequest("POST", "/api/auth/logout"),
     onSuccess: () => {
       queryClient.clear();
-      window.location.href = "/";
       toast({
         title: "Logged out successfully",
         description: "You have been securely logged out.",
       });
+      // Force redirect to login page
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
+    },
+    onError: () => {
+      // Even if logout fails, clear client state and redirect
+      queryClient.clear();
+      window.location.href = "/";
     },
   });
 
@@ -111,17 +119,30 @@ export default function UserDashboard() {
       
       <div className="container mx-auto p-6 space-y-6">
         <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-6 border border-orange-200">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome, {authData?.user?.name}!
-          </h1>
-          <p className="text-gray-600">
-            Manage your government documents and track change requests in one secure place.
-          </p>
-          {authData?.user?.aadhaarNumber && (
-            <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-orange-600 text-white text-sm font-medium">
-              Aadhaar: ****-****-{authData.user.aadhaarNumber.slice(-4)}
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Welcome, {authData?.user?.name}!
+              </h1>
+              <p className="text-gray-600">
+                Manage your government documents and track change requests in one secure place.
+              </p>
+              {authData?.user?.aadhaarNumber && (
+                <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-orange-600 text-white text-sm font-medium">
+                  Aadhaar: ****-****-{authData.user.aadhaarNumber.slice(-4)}
+                </div>
+              )}
             </div>
-          )}
+            <Button 
+              variant="outline" 
+              onClick={() => logoutMutation.mutate()}
+              disabled={logoutMutation.isPending}
+              className="flex items-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
+            >
+              <LogOut className="w-4 h-4" />
+              {logoutMutation.isPending ? "Logging out..." : "Logout"}
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
