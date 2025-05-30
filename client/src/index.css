@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 11% 98%; /* #F5F7FA */
+  --foreground: 210 11% 15%; /* #1B1B1B */
+  --muted: 210 11% 95%; /* #F0F0F0 */
+  --muted-foreground: 210 6% 46%; /* #71767A */
+  --popover: 210 11% 98%; /* #F5F7FA */
+  --popover-foreground: 210 11% 15%; /* #1B1B1B */
+  --card: 0 0% 100%; /* #FFFFFF */
+  --card-foreground: 210 11% 15%; /* #1B1B1B */
+  --border: 210 11% 89%; /* #E5E7EB */
+  --input: 210 11% 89%; /* #E5E7EB */
+  --primary: 212 92% 33%; /* #005EA2 */
+  --primary-foreground: 0 0% 100%; /* #FFFFFF */
+  --secondary: 210 11% 95%; /* #F0F0F0 */
+  --secondary-foreground: 210 11% 15%; /* #1B1B1B */
+  --accent: 210 11% 95%; /* #F0F0F0 */
+  --accent-foreground: 210 11% 15%; /* #1B1B1B */
+  --destructive: 0 84% 37%; /* #B50909 */
+  --destructive-foreground: 0 0% 100%; /* #FFFFFF */
+  --ring: 212 92% 33%; /* #005EA2 */
+  --radius: 0.5rem;
+
+  /* Government colors */
+  --gov-blue: 212 92% 33%; /* #005EA2 */
+  --gov-blue-light: 212 81% 42%; /* #1F7AB8 */
+  --gov-purple: 261 65% 32%; /* #54278F */
+  --gov-green: 138 100% 33%; /* #00A91C */
+  --gov-red: 0 84% 37%; /* #B50909 */
+  --gov-yellow: 45 100% 50%; /* #FFB700 */
+  --gov-gray: 210 6% 46%; /* #71767A */
+  --gov-gray-light: 210 11% 95%; /* #F0F0F0 */
+  --gov-dark: 210 11% 15%; /* #1B1B1B */
+}
+
+.dark {
+  --background: 210 11% 6%; /* #0F1419 */
+  --foreground: 0 0% 98%; /* #FAFAFA */
+  --muted: 210 11% 15%; /* #1B1B1B */
+  --muted-foreground: 210 6% 64%; /* #9CA3AF */
+  --popover: 210 11% 6%; /* #0F1419 */
+  --popover-foreground: 0 0% 98%; /* #FAFAFA */
+  --card: 210 11% 6%; /* #0F1419 */
+  --card-foreground: 0 0% 98%; /* #FAFAFA */
+  --border: 210 11% 15%; /* #1B1B1B */
+  --input: 210 11% 15%; /* #1B1B1B */
+  --primary: 212 92% 33%; /* #005EA2 */
+  --primary-foreground: 0 0% 100%; /* #FFFFFF */
+  --secondary: 210 11% 15%; /* #1B1B1B */
+  --secondary-foreground: 0 0% 98%; /* #FAFAFA */
+  --accent: 210 11% 15%; /* #1B1B1B */
+  --accent-foreground: 0 0% 98%; /* #FAFAFA */
+  --destructive: 0 84% 37%; /* #B50909 */
+  --destructive-foreground: 0 0% 100%; /* #FFFFFF */
+  --ring: 212 92% 33%; /* #005EA2 */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Source Sans Pro', 'Helvetica', 'Arial', sans-serif;
+  }
+}
+
+@layer utilities {
+  .gov-blue {
+    color: hsl(var(--gov-blue));
+  }
+  
+  .bg-gov-blue {
+    background-color: hsl(var(--gov-blue));
+  }
+  
+  .gov-blue-light {
+    color: hsl(var(--gov-blue-light));
+  }
+  
+  .bg-gov-blue-light {
+    background-color: hsl(var(--gov-blue-light));
+  }
+  
+  .gov-green {
+    color: hsl(var(--gov-green));
+  }
+  
+  .bg-gov-green {
+    background-color: hsl(var(--gov-green));
+  }
+  
+  .gov-red {
+    color: hsl(var(--gov-red));
+  }
+  
+  .bg-gov-red {
+    background-color: hsl(var(--gov-red));
+  }
+  
+  .gov-yellow {
+    color: hsl(var(--gov-yellow));
+  }
+  
+  .bg-gov-yellow {
+    background-color: hsl(var(--gov-yellow));
+  }
+  
+  .gov-gray {
+    color: hsl(var(--gov-gray));
+  }
+  
+  .bg-gov-gray {
+    background-color: hsl(var(--gov-gray));
+  }
+  
+  .gov-dark {
+    color: hsl(var(--gov-dark));
+  }
+  
+  .bg-gov-dark {
+    background-color: hsl(var(--gov-dark));
+  }
+}
