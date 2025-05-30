@@ -89,11 +89,11 @@ export class DatabaseStorage implements IStorage {
         });
       }
 
-      // Check if sample user already exists
+      // Check if sample users already exist
       const existingUser = await this.getUserByAadhaar("123456789012");
       if (!existingUser) {
-        // Create sample user
-        const user = await this.createUser({
+        // Create multiple sample users
+        const user1 = await this.createUser({
           aadhaarNumber: "123456789012",
           name: "Rajesh Kumar",
           email: "rajesh@example.com",
@@ -102,6 +102,49 @@ export class DatabaseStorage implements IStorage {
           dateOfBirth: "15-Aug-1985",
           type: "user",
         });
+
+        const user2 = await this.createUser({
+          aadhaarNumber: "234567890123",
+          name: "Priya Sharma",
+          email: "priya.sharma@example.com",
+          phone: "9765432109",
+          address: "456, Sector 15, Gurgaon - 122001",
+          dateOfBirth: "22-Mar-1990",
+          type: "user",
+        });
+
+        const user3 = await this.createUser({
+          aadhaarNumber: "345678901234",
+          name: "Amit Singh",
+          email: "amit.singh@example.com",
+          phone: "9654321098",
+          address: "789, Park Street, Kolkata - 700016",
+          dateOfBirth: "08-Dec-1987",
+          type: "user",
+        });
+
+        const user4 = await this.createUser({
+          aadhaarNumber: "456789012345",
+          name: "Sunita Devi",
+          email: "sunita.devi@example.com",
+          phone: "9543210987",
+          address: "321, Civil Lines, Jaipur - 302006",
+          dateOfBirth: "14-Jul-1983",
+          type: "user",
+        });
+
+        const user5 = await this.createUser({
+          aadhaarNumber: "567890123456",
+          name: "Vikram Patel",
+          email: "vikram.patel@example.com",
+          phone: "9432109876",
+          address: "654, Banjara Hills, Hyderabad - 500034",
+          dateOfBirth: "19-Nov-1992",
+          type: "user",
+        });
+
+        // Create documents for user1 (Rajesh Kumar)
+        const user = user1;
 
         // Create sample documents for the user
         await this.createAadhaar({
@@ -159,6 +202,106 @@ export class DatabaseStorage implements IStorage {
           category: "APL",
           address: "123, MG Road, Delhi - 110001",
           issueDate: "10-Apr-2021",
+        });
+
+        // Create documents for user2 (Priya Sharma)
+        await this.createAadhaar({
+          userId: user2.id,
+          aadhaarNumber: "234567890123",
+          name: "Priya Sharma",
+          fatherName: "Suresh Sharma",
+          dateOfBirth: "22-Mar-1990",
+          gender: "Female",
+          address: "456, Sector 15, Gurgaon - 122001",
+          phone: "9765432109",
+          email: "priya.sharma@example.com",
+          issueDate: "15-May-2019",
+        });
+
+        await this.createPan({
+          userId: user2.id,
+          panNumber: "FGHIJ5678K",
+          name: "Priya Sharma",
+          fatherName: "Suresh Sharma",
+          dateOfBirth: "22-Mar-1990",
+          address: "456, Sector 15, Gurgaon - 122001",
+          issueDate: "10-Aug-2017",
+        });
+
+        // Create documents for user3 (Amit Singh)
+        await this.createAadhaar({
+          userId: user3.id,
+          aadhaarNumber: "345678901234",
+          name: "Amit Singh",
+          fatherName: "Rajendra Singh",
+          dateOfBirth: "08-Dec-1987",
+          gender: "Male",
+          address: "789, Park Street, Kolkata - 700016",
+          phone: "9654321098",
+          email: "amit.singh@example.com",
+          issueDate: "05-Feb-2021",
+        });
+
+        await this.createVoterId({
+          userId: user3.id,
+          voterIdNumber: "KLM3456789",
+          name: "Amit Singh",
+          fatherName: "Rajendra Singh",
+          dateOfBirth: "08-Dec-1987",
+          gender: "Male",
+          address: "789, Park Street, Kolkata - 700016",
+          constituency: "Park Street",
+          issueDate: "12-Nov-2019",
+        });
+
+        // Create documents for user4 (Sunita Devi)
+        await this.createAadhaar({
+          userId: user4.id,
+          aadhaarNumber: "456789012345",
+          name: "Sunita Devi",
+          fatherName: "Ramesh Kumar",
+          dateOfBirth: "14-Jul-1983",
+          gender: "Female",
+          address: "321, Civil Lines, Jaipur - 302006",
+          phone: "9543210987",
+          email: "sunita.devi@example.com",
+          issueDate: "28-Jan-2020",
+        });
+
+        await this.createRationCard({
+          userId: user4.id,
+          rationCardNumber: "RC987654321",
+          name: "Sunita Devi",
+          familyMembers: 5,
+          category: "BPL",
+          address: "321, Civil Lines, Jaipur - 302006",
+          issueDate: "15-Sep-2020",
+        });
+
+        // Create documents for user5 (Vikram Patel)
+        await this.createAadhaar({
+          userId: user5.id,
+          aadhaarNumber: "567890123456",
+          name: "Vikram Patel",
+          fatherName: "Mahesh Patel",
+          dateOfBirth: "19-Nov-1992",
+          gender: "Male",
+          address: "654, Banjara Hills, Hyderabad - 500034",
+          phone: "9432109876",
+          email: "vikram.patel@example.com",
+          issueDate: "03-Jun-2022",
+        });
+
+        await this.createDrivingLicense({
+          userId: user5.id,
+          licenseNumber: "HR0520230012345",
+          name: "Vikram Patel",
+          fatherName: "Mahesh Patel",
+          dateOfBirth: "19-Nov-1992",
+          address: "654, Banjara Hills, Hyderabad - 500034",
+          vehicleClass: "LMV",
+          issueDate: "10-Mar-2023",
+          expiryDate: "10-Mar-2031",
         });
       }
 
