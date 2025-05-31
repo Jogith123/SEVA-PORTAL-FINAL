@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { registerRoutes } from "./routes";
@@ -9,7 +10,7 @@ app.use(express.urlencoded({ extended: false }));
 
 // Add session middleware
 app.use(session({
-  secret: 'government-portal-secret-key',
+  secret: process.env.SESSION_SECRET || 'government-portal-secret-key',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -73,11 +74,7 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  server.listen(port, () => {
     log(`serving on port ${port}`);
   });
 })();

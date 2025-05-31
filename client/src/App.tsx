@@ -5,28 +5,42 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+import "@/styles/global.css";
+
+type AuthData = {
+  type: "user" | "admin";
+  user?: {
+    id: number;
+    name: string;
+    aadhaar_number: string;
+  };
+  admin?: {
+    id: number;
+    name: string;
+    employeeId: string;
+  };
+};
 
 import LoginPage from "@/pages/login";
 import UserDashboard from "@/pages/user-dashboard";
 import AdminPanel from "@/pages/admin-panel";
 import NotFound from "@/pages/not-found";
+import LandingPage from "@/pages/index";
 
 function AuthWrapper() {
   const [location, setLocation] = useLocation();
   
-  const { data: authData, isLoading } = useQuery({
+  const { data: authData, isLoading } = useQuery<AuthData>({
     queryKey: ["/api/auth/me"],
     retry: false,
   });
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!authData && location !== "/") {
-        setLocation("/");
-      } else if (authData) {
-        if (authData?.user && !location.startsWith("/dashboard")) {
+    if (!isLoading && authData) {
+      if (location === "/" || location === "/login") {
+        if (authData.type === "user") {
           setLocation("/dashboard");
-        } else if (authData?.admin && !location.startsWith("/admin")) {
+        } else if (authData.type === "admin") {
           setLocation("/admin");
         }
       }
@@ -35,10 +49,11 @@ function AuthWrapper() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-blue-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading Government Portal...</p>
+      <div className="login-container flex items-center justify-center">
+        <div className="login-card p-8 text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent mx-auto mb-6"></div>
+          <h2 className="text-xl font-semibold mb-2 text-primary">Digital Document Services</h2>
+          <p className="text-muted-foreground">Loading your secure portal...</p>
         </div>
       </div>
     );
@@ -46,9 +61,14 @@ function AuthWrapper() {
 
   return (
     <Switch>
-      <Route path="/" component={LoginPage} />
-      <Route path="/dashboard" component={UserDashboard} />
-      <Route path="/admin" component={AdminPanel} />
+      <Route path="/" component={LandingPage} />
+      <Route path="/login" component={LoginPage} />
+      <Route path="/dashboard">
+        {authData?.type === "user" ? <UserDashboard /> : <LoginPage />}
+      </Route>
+      <Route path="/admin">
+        {authData?.type === "admin" ? <AdminPanel /> : <LoginPage />}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

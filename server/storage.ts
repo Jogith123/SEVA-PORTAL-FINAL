@@ -1,5 +1,4 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { db } from "./db";
 import { 
   users, admins, aadhaarTable, panTable, voterIdTable, 
   drivingLicenseTable, rationCardTable, changeRequests, fieldChangeTracker,
@@ -59,17 +58,9 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  private db: ReturnType<typeof drizzle>;
   private initialized = false;
 
   constructor() {
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      throw new Error("DATABASE_URL environment variable is required");
-    }
-
-    const client = postgres(connectionString);
-    this.db = drizzle(client);
     this.initializeData();
   }
 
@@ -96,7 +87,7 @@ export class DatabaseStorage implements IStorage {
         const user1 = await this.createUser({
           aadhaarNumber: "123456789012",
           name: "Rajesh Kumar",
-          email: "rajesh@example.com",
+          email: "baparao2005@gmail.com",
           phone: "9876543210",
           address: "123, MG Road, Delhi - 110001",
           dateOfBirth: "15-Aug-1985",
@@ -313,91 +304,91 @@ export class DatabaseStorage implements IStorage {
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    const result = await this.db.select().from(users).where(eq(users.id, id)).limit(1);
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
     return result[0];
   }
 
   async getUserByAadhaar(aadhaarNumber: string): Promise<User | undefined> {
-    const result = await this.db.select().from(users).where(eq(users.aadhaarNumber, aadhaarNumber)).limit(1);
+    const result = await db.select().from(users).where(eq(users.aadhaarNumber, aadhaarNumber)).limit(1);
     return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const result = await this.db.insert(users).values(insertUser).returning();
+    const result = await db.insert(users).values(insertUser).returning();
     return result[0];
   }
 
   // Admin methods
   async getAdmin(id: number): Promise<Admin | undefined> {
-    const result = await this.db.select().from(admins).where(eq(admins.id, id)).limit(1);
+    const result = await db.select().from(admins).where(eq(admins.id, id)).limit(1);
     return result[0];
   }
 
   async getAdminByEmployeeId(employeeId: string): Promise<Admin | undefined> {
-    const result = await this.db.select().from(admins).where(eq(admins.employeeId, employeeId)).limit(1);
+    const result = await db.select().from(admins).where(eq(admins.employeeId, employeeId)).limit(1);
     return result[0];
   }
 
   async createAdmin(insertAdmin: InsertAdmin): Promise<Admin> {
-    const result = await this.db.insert(admins).values(insertAdmin).returning();
+    const result = await db.insert(admins).values(insertAdmin).returning();
     return result[0];
   }
 
   // Document retrieval methods
   async getAadhaarByUserId(userId: number): Promise<AadhaarDocument | undefined> {
-    const result = await this.db.select().from(aadhaarTable).where(eq(aadhaarTable.userId, userId)).limit(1);
+    const result = await db.select().from(aadhaarTable).where(eq(aadhaarTable.userId, userId)).limit(1);
     return result[0];
   }
 
   async getPanByUserId(userId: number): Promise<PanDocument | undefined> {
-    const result = await this.db.select().from(panTable).where(eq(panTable.userId, userId)).limit(1);
+    const result = await db.select().from(panTable).where(eq(panTable.userId, userId)).limit(1);
     return result[0];
   }
 
   async getVoterIdByUserId(userId: number): Promise<VoterIdDocument | undefined> {
-    const result = await this.db.select().from(voterIdTable).where(eq(voterIdTable.userId, userId)).limit(1);
+    const result = await db.select().from(voterIdTable).where(eq(voterIdTable.userId, userId)).limit(1);
     return result[0];
   }
 
   async getDrivingLicenseByUserId(userId: number): Promise<DrivingLicenseDocument | undefined> {
-    const result = await this.db.select().from(drivingLicenseTable).where(eq(drivingLicenseTable.userId, userId)).limit(1);
+    const result = await db.select().from(drivingLicenseTable).where(eq(drivingLicenseTable.userId, userId)).limit(1);
     return result[0];
   }
 
   async getRationCardByUserId(userId: number): Promise<RationCardDocument | undefined> {
-    const result = await this.db.select().from(rationCardTable).where(eq(rationCardTable.userId, userId)).limit(1);
+    const result = await db.select().from(rationCardTable).where(eq(rationCardTable.userId, userId)).limit(1);
     return result[0];
   }
 
   // Document creation methods
   async createAadhaar(insertDoc: InsertAadhaarDocument): Promise<AadhaarDocument> {
-    const result = await this.db.insert(aadhaarTable).values(insertDoc).returning();
+    const result = await db.insert(aadhaarTable).values(insertDoc).returning();
     return result[0];
   }
 
   async createPan(insertDoc: InsertPanDocument): Promise<PanDocument> {
-    const result = await this.db.insert(panTable).values(insertDoc).returning();
+    const result = await db.insert(panTable).values(insertDoc).returning();
     return result[0];
   }
 
   async createVoterId(insertDoc: InsertVoterIdDocument): Promise<VoterIdDocument> {
-    const result = await this.db.insert(voterIdTable).values(insertDoc).returning();
+    const result = await db.insert(voterIdTable).values(insertDoc).returning();
     return result[0];
   }
 
   async createDrivingLicense(insertDoc: InsertDrivingLicenseDocument): Promise<DrivingLicenseDocument> {
-    const result = await this.db.insert(drivingLicenseTable).values(insertDoc).returning();
+    const result = await db.insert(drivingLicenseTable).values(insertDoc).returning();
     return result[0];
   }
 
   async createRationCard(insertDoc: InsertRationCardDocument): Promise<RationCardDocument> {
-    const result = await this.db.insert(rationCardTable).values(insertDoc).returning();
+    const result = await db.insert(rationCardTable).values(insertDoc).returning();
     return result[0];
   }
 
   // Document update methods
   async updateAadhaar(id: number, updates: Partial<AadhaarDocument>): Promise<AadhaarDocument | undefined> {
-    const result = await this.db.update(aadhaarTable)
+    const result = await db.update(aadhaarTable)
       .set({ ...updates, lastUpdated: new Date() })
       .where(eq(aadhaarTable.id, id))
       .returning();
@@ -405,7 +396,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePan(id: number, updates: Partial<PanDocument>): Promise<PanDocument | undefined> {
-    const result = await this.db.update(panTable)
+    const result = await db.update(panTable)
       .set({ ...updates, lastUpdated: new Date() })
       .where(eq(panTable.id, id))
       .returning();
@@ -413,7 +404,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateVoterId(id: number, updates: Partial<VoterIdDocument>): Promise<VoterIdDocument | undefined> {
-    const result = await this.db.update(voterIdTable)
+    const result = await db.update(voterIdTable)
       .set({ ...updates, lastUpdated: new Date() })
       .where(eq(voterIdTable.id, id))
       .returning();
@@ -421,7 +412,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDrivingLicense(id: number, updates: Partial<DrivingLicenseDocument>): Promise<DrivingLicenseDocument | undefined> {
-    const result = await this.db.update(drivingLicenseTable)
+    const result = await db.update(drivingLicenseTable)
       .set({ ...updates, lastUpdated: new Date() })
       .where(eq(drivingLicenseTable.id, id))
       .returning();
@@ -429,7 +420,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateRationCard(id: number, updates: Partial<RationCardDocument>): Promise<RationCardDocument | undefined> {
-    const result = await this.db.update(rationCardTable)
+    const result = await db.update(rationCardTable)
       .set({ ...updates, lastUpdated: new Date() })
       .where(eq(rationCardTable.id, id))
       .returning();
@@ -438,25 +429,25 @@ export class DatabaseStorage implements IStorage {
 
   // Change request methods
   async getChangeRequest(id: number): Promise<ChangeRequest | undefined> {
-    const result = await this.db.select().from(changeRequests).where(eq(changeRequests.id, id)).limit(1);
+    const result = await db.select().from(changeRequests).where(eq(changeRequests.id, id)).limit(1);
     return result[0];
   }
 
   async getChangeRequestByReference(referenceId: string): Promise<ChangeRequest | undefined> {
-    const result = await this.db.select().from(changeRequests).where(eq(changeRequests.referenceId, referenceId)).limit(1);
+    const result = await db.select().from(changeRequests).where(eq(changeRequests.referenceId, referenceId)).limit(1);
     return result[0];
   }
 
   async getChangeRequestsByUserId(userId: number): Promise<ChangeRequest[]> {
-    return await this.db.select().from(changeRequests).where(eq(changeRequests.userId, userId));
+    return await db.select().from(changeRequests).where(eq(changeRequests.userId, userId));
   }
 
   async getAllPendingChangeRequests(): Promise<ChangeRequest[]> {
-    return await this.db.select().from(changeRequests).where(eq(changeRequests.status, "pending"));
+    return await db.select().from(changeRequests).where(eq(changeRequests.status, "pending"));
   }
 
   async createChangeRequest(insertRequest: InsertChangeRequest): Promise<ChangeRequest> {
-    const result = await this.db.insert(changeRequests).values(insertRequest).returning();
+    const result = await db.insert(changeRequests).values(insertRequest).returning();
     return result[0];
   }
 
@@ -466,7 +457,7 @@ export class DatabaseStorage implements IStorage {
       updateData.reviewedAt = new Date();
     }
     
-    const result = await this.db.update(changeRequests)
+    const result = await db.update(changeRequests)
       .set(updateData)
       .where(eq(changeRequests.id, id))
       .returning();
@@ -475,7 +466,7 @@ export class DatabaseStorage implements IStorage {
 
   // Field change tracking methods
   async getFieldChangeCount(userId: number, documentType: string, fieldName: string): Promise<number> {
-    const result = await this.db.select()
+    const result = await db.select()
       .from(fieldChangeTracker)
       .where(and(
         eq(fieldChangeTracker.userId, userId),
@@ -488,7 +479,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async incrementFieldChangeCount(userId: number, documentType: string, fieldName: string): Promise<void> {
-    const existing = await this.db.select()
+    const existing = await db.select()
       .from(fieldChangeTracker)
       .where(and(
         eq(fieldChangeTracker.userId, userId),
@@ -498,14 +489,14 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     if (existing.length > 0) {
-      await this.db.update(fieldChangeTracker)
+      await db.update(fieldChangeTracker)
         .set({ 
           changeCount: existing[0].changeCount + 1,
           lastChanged: new Date()
         })
         .where(eq(fieldChangeTracker.id, existing[0].id));
     } else {
-      await this.db.insert(fieldChangeTracker).values({
+      await db.insert(fieldChangeTracker).values({
         userId,
         documentType,
         fieldName,

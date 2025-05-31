@@ -6,6 +6,7 @@ import {
   type User, type Admin 
 } from "@shared/schema";
 import { z } from "zod";
+import authRouter, { initializeEmailTransporter, sendBiometricApprovalEmail } from "./routes/auth";
 
 interface AuthenticatedRequest extends Express.Request {
   user?: User;
@@ -14,6 +15,16 @@ interface AuthenticatedRequest extends Express.Request {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Initialize email transporter
+  try {
+    initializeEmailTransporter();
+  } catch (error) {
+    console.error('Failed to initialize email transporter:', error);
+  }
+
+  // Mount auth routes
+  app.use('/api/auth', authRouter);
+
   // Session middleware simulation
   app.use((req: any, res, next) => {
     if (!req.session) {
@@ -55,24 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Authentication routes
-  app.post("/api/auth/user/login", async (req, res) => {
-    try {
-      const { aadhaarNumber } = userLoginSchema.parse(req.body);
-      
-      const user = await storage.getUserByAadhaar(aadhaarNumber);
-      if (!user) {
-        return res.status(401).json({ message: "Invalid Aadhaar number" });
-      }
 
-      (req as any).session.userId = user.id;
-      res.json({ user: { id: user.id, name: user.name, aadhaarNumber: user.aadhaarNumber } });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid input", errors: error.errors });
-      }
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
 
   app.post("/api/auth/admin/login", async (req, res) => {
     try {
@@ -90,6 +84,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid input", errors: error.errors });
       }
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Biometric approval endpoint
+  app.post("/api/auth/admin/approve-biometric", requireAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.body;
+      
+      // Get user details
+      const user = await storage.getUser(userId);
+      if (!user || !user.email || !user.name) {
+        return res.status(404).json({
+          error: 'User not found or missing required information'
+        });
+      }
+
+      // Send approval email using the existing transporter
+      await sendBiometricApprovalEmail(user.email, user.name);
+      
+      res.json({
+        message: 'Biometric verification approval sent successfully',
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email
+        }
+      });
+      
+    } catch (error) {
+      console.error('Biometric Approval Error:', error);
+      res.status(500).json({
+        error: 'Failed to send approval notification. Please try again.'
+      });
     }
   });
 
@@ -416,11 +443,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (updatedRequest) {
-        // Apply the change to the specific document
+        // Apply the change to all relevant documents
         await applyDocumentChange(updatedRequest);
-        
-        // Update all documents with common fields
-        await updateAllDocumentsWithCommonFields(updatedRequest);
       }
 
       res.json(updatedRequest);
@@ -455,6 +479,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   async function applyDocumentChange(request: any) {
     const updates = { [request.fieldToUpdate]: request.newValue };
     
+    // First, update the specific document
     switch (request.documentType) {
       case "aadhaar":
         const aadhaar = await storage.getAadhaarByUserId(request.userId);
@@ -487,11 +512,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         break;
     }
+
+    // Then update all documents with common fields if applicable
+    await updateAllDocumentsWithCommonFields(request);
   }
 
   // Function to update all documents with common fields when admin approves changes
   async function updateAllDocumentsWithCommonFields(request: any) {
-    const commonFields = ['name', 'address', 'phoneNumber', 'email'];
+    // Define fields that should be synchronized across all documents
+    const commonFields = ['name', 'address', 'phoneNumber', 'email', 'dateOfBirth', 'gender'];
     
     if (commonFields.includes(request.fieldToUpdate)) {
       const userId = request.userId;
@@ -501,31 +530,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updates = { [fieldName]: newValue };
       
       try {
-        // Update all document types with the common field
-        const aadhaar = await storage.getAadhaarByUserId(userId);
-        if (aadhaar) {
-          await storage.updateAadhaar(aadhaar.id, updates);
-        }
-        
-        const pan = await storage.getPanByUserId(userId);
-        if (pan) {
-          await storage.updatePan(pan.id, updates);
-        }
-        
-        const voterId = await storage.getVoterIdByUserId(userId);
-        if (voterId) {
-          await storage.updateVoterId(voterId.id, updates);
-        }
-        
-        const drivingLicense = await storage.getDrivingLicenseByUserId(userId);
-        if (drivingLicense) {
-          await storage.updateDrivingLicense(drivingLicense.id, updates);
-        }
-        
-        const rationCard = await storage.getRationCardByUserId(userId);
-        if (rationCard) {
-          await storage.updateRationCard(rationCard.id, updates);
-        }
+        // Get all documents for the user
+        const [aadhaar, pan, voterId, drivingLicense, rationCard] = await Promise.all([
+          storage.getAadhaarByUserId(userId),
+          storage.getPanByUserId(userId),
+          storage.getVoterIdByUserId(userId),
+          storage.getDrivingLicenseByUserId(userId),
+          storage.getRationCardByUserId(userId)
+        ]);
+
+        // Update all documents in parallel
+        await Promise.all([
+          aadhaar && storage.updateAadhaar(aadhaar.id, updates),
+          pan && storage.updatePan(pan.id, updates),
+          voterId && storage.updateVoterId(voterId.id, updates),
+          drivingLicense && storage.updateDrivingLicense(drivingLicense.id, updates),
+          rationCard && storage.updateRationCard(rationCard.id, updates)
+        ].filter(Boolean));
         
         console.log(`Synchronized ${fieldName} across all documents for user ${userId}`);
       } catch (error) {

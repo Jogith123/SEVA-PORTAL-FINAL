@@ -29,7 +29,7 @@ export default function EditDocumentModal({
 }: EditDocumentModalProps) {
   const { toast } = useToast();
   
-  const [changeType, setChangeType] = useState<"minor" | "major">("minor");
+  // All changes require admin approval
   const [fieldToUpdate, setFieldToUpdate] = useState("");
   const [newValue, setNewValue] = useState("");
   const [supportingFiles, setSupportingFiles] = useState<File[]>([]);
@@ -43,9 +43,7 @@ export default function EditDocumentModal({
     onSuccess: (data) => {
       toast({
         title: "Request Submitted",
-        description: changeType === "minor" 
-          ? "Your change has been approved automatically."
-          : `Your request has been submitted with reference ID: ${data.referenceId}`,
+        description: `Your request has been submitted with reference ID: ${data.referenceId}`,
       });
       onSuccess();
       resetForm();
@@ -56,7 +54,7 @@ export default function EditDocumentModal({
   });
 
   const resetForm = () => {
-    setChangeType("minor");
+    // All changes require admin approval
     setFieldToUpdate("");
     setNewValue("");
     setSupportingFiles([]);
@@ -71,18 +69,18 @@ export default function EditDocumentModal({
 
   const getFieldOptions = () => {
     const commonFields = [
-      { value: "name", label: "Name", type: "major" },
-      { value: "address", label: "Address", type: "minor" },
-      { value: "phone", label: "Phone Number", type: "minor" },
-      { value: "dateOfBirth", label: "Date of Birth", type: "major" },
+      { value: "name", label: "Name" },
+      { value: "address", label: "Address" },
+      { value: "phone", label: "Phone Number" },
+      { value: "dateOfBirth", label: "Date of Birth" },
     ];
 
     switch (documentType) {
       case "aadhaar":
         return [
           ...commonFields,
-          { value: "email", label: "Email", type: "minor" },
-          { value: "fatherName", label: "Father's Name", type: "major" },
+          { value: "email", label: "Email" },
+          { value: "fatherName", label: "Father's Name" },
         ];
       case "pan":
         return [
@@ -92,21 +90,21 @@ export default function EditDocumentModal({
       case "voterId":
         return [
           ...commonFields,
-          { value: "fatherName", label: "Father's Name", type: "major" },
-          { value: "constituency", label: "Constituency", type: "minor" },
+          { value: "fatherName", label: "Father's Name" },
+          { value: "constituency", label: "Constituency" },
         ];
       case "drivingLicense":
         return [
           ...commonFields,
-          { value: "fatherName", label: "Father's Name", type: "major" },
-          { value: "vehicleClass", label: "Vehicle Class", type: "minor" },
+          { value: "fatherName", label: "Father's Name" },
+          { value: "vehicleClass", label: "Vehicle Class" },
         ];
       case "rationCard":
         return [
-          { value: "name", label: "Name", type: "major" },
-          { value: "address", label: "Address", type: "minor" },
-          { value: "familyMembers", label: "Family Members", type: "minor" },
-          { value: "category", label: "Category", type: "minor" },
+          { value: "name", label: "Name" },
+          { value: "address", label: "Address" },
+          { value: "familyMembers", label: "Family Members" },
+          { value: "category", label: "Category" },
         ];
       default:
         return commonFields;
@@ -115,10 +113,6 @@ export default function EditDocumentModal({
 
   const handleFieldChange = (value: string) => {
     setFieldToUpdate(value);
-    const field = getFieldOptions().find(f => f.value === value);
-    if (field) {
-      setChangeType(field.type as "minor" | "major");
-    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,16 +138,16 @@ export default function EditDocumentModal({
       return;
     }
 
-    if (changeType === "major" && supportingFiles.length < 2) {
-      setError("Major changes require 2 supporting documents");
+    if (supportingFiles.length < 2) {
+      setError("All changes require 2 supporting documents");
       return;
     }
 
-    const supportingDocuments = supportingFiles.map(file => file.name);
+    const supportingDocuments = supportingFiles.map(file => file.name).join(",");
 
     createRequestMutation.mutate({
       documentType,
-      changeType,
+      changeType: "major", // All changes require admin approval
       fieldToUpdate,
       newValue: newValue.trim(),
       supportingDocuments,
@@ -185,29 +179,14 @@ export default function EditDocumentModal({
             </Alert>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <Card className={`p-4 cursor-pointer border-2 transition-colors ${
-              changeType === "minor" ? "border-primary bg-primary/5" : "border-border"
-            }`}>
-              <div className="text-center">
-                <h4 className="font-semibold mb-2">Minor Change</h4>
-                <p className="text-sm text-muted-foreground">
-                  Address, phone number - Auto approved
-                </p>
-              </div>
-            </Card>
-
-            <Card className={`p-4 cursor-pointer border-2 transition-colors ${
-              changeType === "major" ? "border-primary bg-primary/5" : "border-border"
-            }`}>
-              <div className="text-center">
-                <h4 className="font-semibold mb-2">Major Change</h4>
-                <p className="text-sm text-muted-foreground">
-                  Name, DOB, photo - Requires verification
-                </p>
-              </div>
-            </Card>
-          </div>
+          <Card className="p-4">
+            <div className="text-center">
+              <h4 className="font-semibold mb-2">Document Change Request</h4>
+              <p className="text-sm text-muted-foreground">
+                All changes require admin approval and supporting documents
+              </p>
+            </div>
+          </Card>
 
           <div className="space-y-2">
             <Label htmlFor="field">Field to Update</Label>
@@ -220,8 +199,8 @@ export default function EditDocumentModal({
                   <SelectItem key={field.value} value={field.value}>
                     <div className="flex items-center justify-between w-full">
                       <span>{field.label}</span>
-                      <Badge variant={field.type === "major" ? "destructive" : "secondary"} className="ml-2">
-                        {field.type}
+                      <Badge variant="secondary" className="ml-2">
+                        Admin Approval Required
                       </Badge>
                     </div>
                   </SelectItem>
@@ -240,9 +219,10 @@ export default function EditDocumentModal({
             />
           </div>
 
-          {changeType === "major" && (
+          {/* All changes require supporting documents */}
+          {(
             <div className="space-y-4">
-              <Label>Supporting Documents (Required for major changes)</Label>
+              <Label>Supporting Documents (Required for all changes)</Label>
               
               <div className="file-upload-area">
                 <input
@@ -257,7 +237,7 @@ export default function EditDocumentModal({
                   <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <p className="font-medium mb-2">Drop files here or click to upload</p>
                   <p className="text-sm text-muted-foreground">
-                    Upload 2 supporting documents (PDF, JPG, PNG)
+                    Upload 2 supporting documents to verify your identity (PDF, JPG, PNG)
                   </p>
                 </label>
               </div>

@@ -44,9 +44,21 @@ export default function AdminPanel() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [comments, setComments] = useState("");
   const [userDocuments, setUserDocuments] = useState<any>(null);
+  const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
 
-  const { data: authData } = useQuery({
+  interface AuthData {
+    admin: {
+      id: number;
+      name: string;
+      employeeId: string;
+      department?: string;
+    };
+  }
+
+  const { data: authData } = useQuery<AuthData>({
     queryKey: ["/api/auth/me"],
+    enabled: true,
   });
 
   const { data: requests, isLoading, refetch } = useQuery({
@@ -129,16 +141,70 @@ export default function AdminPanel() {
     setReviewModalOpen(true);
   };
 
-  const handleApprove = () => {
-    if (selectedRequest) {
-      approveMutation.mutate({ id: selectedRequest.id, comments });
+  const handleApprove = async () => {
+    if (!selectedRequest) {
+      toast({
+        title: "Error",
+        description: "No request selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!comments.trim()) {
+      toast({
+        title: "Comments Required",
+        description: "Please provide comments for the approval",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // First approve the change request
+      await approveMutation.mutateAsync({ id: selectedRequest.id, comments });
+
+      // Then send the biometric approval email
+      const biometricResponse = await apiRequest(
+        "POST", 
+        "/api/auth/admin/approve-biometric", 
+        { 
+          userId: selectedRequest.userId,
+          adminId: authData?.admin.id
+        }
+      );
+
+      if (!biometricResponse.ok) {
+        throw new Error('Failed to send biometric approval email');
+      }
+
+      toast({
+        title: "Success",
+        description: "Request approved and biometric verification email sent.",
+      });
+    } catch (error) {
+      console.error('Error in approval process:', error);
+      toast({
+        title: "Error",
+        description: "Failed to complete approval process. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleReject = () => {
-    if (selectedRequest) {
-      rejectMutation.mutate({ id: selectedRequest.id, comments });
+    if (!selectedRequest) return;
+
+    if (!comments.trim()) {
+      toast({
+        title: "Comments Required",
+        description: "Please provide comments for the rejection",
+        variant: "destructive",
+      });
+      return;
     }
+
+    rejectMutation.mutate({ id: selectedRequest.id, comments });
   };
 
   const getDocumentIcon = (type: string) => {
@@ -383,96 +449,98 @@ export default function AdminPanel() {
 
       {/* Review Modal */}
       <Dialog open={reviewModalOpen} onOpenChange={setReviewModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Review Change Request</DialogTitle>
             <DialogDescription>
-              Review the details and approve or reject this change request
+              Please review the following change request carefully.
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedRequest && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-xs text-gray-500">Reference ID</Label>
-                  <p className="font-mono text-sm">{selectedRequest.referenceId}</p>
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500">Document Type</Label>
+                  <Label>Document Type</Label>
                   <p className="font-medium">{getDocumentDisplayName(selectedRequest.documentType)}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500">Field to Update</Label>
+                  <Label>Status</Label>
+                  <Badge variant="destructive">Admin Approval Required</Badge>
+                </div>
+                <div>
+                  <Label>Field to Update</Label>
                   <p className="font-medium">{selectedRequest.fieldToUpdate}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500">Change Type</Label>
-                  <Badge variant={selectedRequest.changeType === 'major' ? 'destructive' : 'default'}>
-                    {selectedRequest.changeType}
-                  </Badge>
+                  <Label>New Value</Label>
+                  <p className="font-medium">{selectedRequest.newValue}</p>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Change Details</Label>
-                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <Label className="text-xs text-gray-500">Current Value</Label>
-                    <p className="font-medium">{selectedRequest.oldValue || 'Not set'}</p>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-gray-500">New Value</Label>
-                    <p className="font-medium">{selectedRequest.newValue}</p>
+              <div className="space-y-4">
+                <div>
+                  <Label>Supporting Documents</Label>
+                  <div className="mt-2 space-y-2">
+                    {selectedRequest?.supportingDocuments ? (
+                      selectedRequest.supportingDocuments.split(",").filter(Boolean).map((doc: string, index: number) => {
+                        const filename = doc.split("/").pop() || "";
+                        return (
+                          <div key={index} className="flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            <span>{filename}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                window.open(`/uploads/${filename}`, "_blank");
+                              }}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No supporting documents provided</p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {selectedRequest.supportingDocuments && selectedRequest.supportingDocuments.length > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Supporting Documents</Label>
-                  <div className="space-y-2">
-                    {selectedRequest.supportingDocuments.map((doc: string, index: number) => (
-                      <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                        <FileText className="w-4 h-4" />
-                        <span className="text-sm">{doc}</span>
-                        <Button variant="ghost" size="sm" className="ml-auto">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="comments">Admin Comments</Label>
+              <div>
+                <Label>Admin Comments</Label>
                 <Textarea
-                  id="comments"
                   value={comments}
                   onChange={(e) => setComments(e.target.value)}
-                  placeholder="Add your review comments here..."
-                  rows={3}
+                  placeholder="Please provide comments about your decision"
+                  className="mt-2"
+                  rows={4}
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex justify-end gap-4 mt-6">
                 <Button
-                  onClick={handleApprove}
-                  disabled={approveMutation.isPending}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  variant="outline"
+                  onClick={() => {
+                    setReviewModalOpen(false);
+                    setComments("");
+                  }}
                 >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  {approveMutation.isPending ? "Approving..." : "Approve & Update Documents"}
+                  Cancel
                 </Button>
                 <Button
                   variant="destructive"
                   onClick={handleReject}
                   disabled={rejectMutation.isPending}
-                  className="flex-1"
                 >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  {rejectMutation.isPending ? "Rejecting..." : "Reject Request"}
+                  {rejectMutation.isPending ? "Rejecting..." : "Reject"}
+                </Button>
+                <Button
+                  onClick={handleApprove}
+                  disabled={approveMutation.isPending}
+                >
+                  {approveMutation.isPending ? "Approving..." : "Approve"}
                 </Button>
               </div>
             </div>
@@ -542,12 +610,27 @@ export default function AdminPanel() {
                   return (
                     <Card key={type}>
                       <CardHeader>
-                        <CardTitle className="flex items-center text-lg">
-                          {(() => {
-                            const IconComponent = getDocumentIcon(type);
-                            return <IconComponent className="w-5 h-5 mr-2 text-orange-600" />;
-                          })()}
-                          {getDocumentDisplayName(type)}
+                        <CardTitle className="flex items-center justify-between">
+                          <div className="flex items-center text-lg">
+                            {(() => {
+                              const IconComponent = getDocumentIcon(type);
+                              return <IconComponent className="w-5 h-5 mr-2 text-orange-600" />;
+                            })()}
+                            {getDocumentDisplayName(type)}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              const response = await apiRequest('GET', `/api/admin/documents/${type}/${selectedUser.id}`);
+                              const data = await response.json();
+                              setSelectedDocument(data);
+                              setDocumentViewerOpen(true);
+                            }}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            View Document
+                          </Button>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
@@ -587,8 +670,8 @@ export default function AdminPanel() {
                         </div>
                         <div>
                           <Label className="text-xs text-gray-500">Change Type</Label>
-                          <Badge variant={selectedUser.request.changeType === 'major' ? 'destructive' : 'default'}>
-                            {selectedUser.request.changeType}
+                          <Badge variant="destructive">
+                            Admin Approval Required
                           </Badge>
                         </div>
                         <div>
@@ -606,6 +689,51 @@ export default function AdminPanel() {
               </TabsContent>
             </Tabs>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Document Viewer Modal */}
+      <Dialog open={documentViewerOpen} onOpenChange={setDocumentViewerOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              {selectedDocument?.title} Document
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="bg-white rounded-lg p-6 border">
+            <div className="space-y-6">
+              {/* Document Header */}
+              <div className="text-center border-b pb-4">
+                <h2 className="text-2xl font-bold text-primary mb-2">{selectedDocument?.title}</h2>
+                <p className="text-sm text-gray-600">
+                  Government of India
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Last Updated: {selectedDocument?.lastUpdated ? new Date(selectedDocument.lastUpdated).toLocaleString() : 'N/A'}
+                </p>
+              </div>
+
+              {/* Document Content */}
+              <div className="space-y-4">
+                {selectedDocument?.data.map((item: any, index: number) => (
+                  <div key={index} className="grid grid-cols-2 gap-4 p-2 hover:bg-gray-50 rounded-lg">
+                    <div className="text-sm font-medium text-gray-600 capitalize">{item.field}</div>
+                    <div className="text-sm">{item.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Document Footer */}
+              <div className="border-t pt-4 mt-6">
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div>Document ID: {selectedDocument?.data.find((item: any) => item.field.includes('number'))?.value || 'N/A'}</div>
+                  <div>Verified ✓</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
