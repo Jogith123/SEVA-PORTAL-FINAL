@@ -75,4 +75,4 @@ The client will start on http://localhost:3001
 
 ## Environment Variables
 
-See `.env.example` for required environment variables.
+See `.env.example` for required environment variables...
