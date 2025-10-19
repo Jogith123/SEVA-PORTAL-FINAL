@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Edit, FileText } from "lucide-react";
+import { translations, type Language } from "@/i18n/translations";
 
 interface DocumentCardProps {
   document: any;
@@ -10,6 +11,7 @@ interface DocumentCardProps {
   status: "verified" | "pending" | "rejected";
   onView: () => void;
   onEdit: () => void;
+  language?: Language;
 }
 
 export default function DocumentCard({
@@ -19,17 +21,20 @@ export default function DocumentCard({
   status,
   onView,
   onEdit,
+  language = 'en',
 }: DocumentCardProps) {
+  const t = translations[language];
+  
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "verified":
-        return <Badge className="status-verified">VERIFIED</Badge>;
+        return <Badge className="status-verified">{t.verified}</Badge>;
       case "pending":
-        return <Badge className="status-pending">PENDING</Badge>;
+        return <Badge className="status-pending">{t.pending}</Badge>;
       case "rejected":
-        return <Badge className="status-rejected">REJECTED</Badge>;
+        return <Badge className="status-rejected">{t.rejected}</Badge>;
       default:
-        return <Badge className="status-verified">VERIFIED</Badge>;
+        return <Badge className="status-verified">{t.verified}</Badge>;
     }
   };
 
@@ -72,30 +77,30 @@ export default function DocumentCard({
       <CardContent className="space-y-4">
         <div className="space-y-3">
           <div className="info-row">
-            <span className="info-label">Number:</span>
+            <span className="info-label">{t.number}:</span>
             <span className="info-value">{getDocumentNumber()}</span>
           </div>
           
           <div className="info-row">
-            <span className="info-label">Name:</span>
+            <span className="info-label">{t.name}:</span>
             <span className="info-value">{document.name}</span>
           </div>
           
           <div className="info-row">
-            <span className="info-label">Last Updated:</span>
+            <span className="info-label">{t.lastUpdated}:</span>
             <span className="info-value">{getLastUpdated()}</span>
           </div>
           
           {documentType === "drivingLicense" && document.expiryDate && (
             <div className="info-row">
-              <span className="info-label">Expires:</span>
+              <span className="info-label">{t.expiryDate}:</span>
               <span className="info-value">{document.expiryDate}</span>
             </div>
           )}
           
           {documentType === "rationCard" && document.category && (
             <div className="info-row">
-              <span className="info-label">Category:</span>
+              <span className="info-label">{t.category}:</span>
               <span className="info-value">{document.category}</span>
             </div>
           )}
@@ -109,7 +114,7 @@ export default function DocumentCard({
             className="flex-1 government-button"
           >
             <Eye className="w-4 h-4 mr-2" />
-            View Details
+            {t.view}
           </Button>
           <Button
             variant="outline"
@@ -119,7 +124,7 @@ export default function DocumentCard({
             disabled={status === "pending"}
           >
             <Edit className="w-4 h-4 mr-2" />
-            Edit
+            {t.edit}
           </Button>
         </div>
       </CardContent>

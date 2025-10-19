@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { translations, type Language } from "@/i18n/translations";
 import { 
   LogOut, 
   CheckCircle, 
@@ -37,6 +38,8 @@ export default function AdminPanel() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [language, setLanguage] = useState<Language>('en');
+  const t = translations[language];
   
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [documentsModalOpen, setDocumentsModalOpen] = useState(false);
@@ -220,11 +223,11 @@ export default function AdminPanel() {
 
   const getDocumentDisplayName = (type: string) => {
     switch (type) {
-      case 'aadhaar': return 'Aadhaar Card';
-      case 'pan': return 'PAN Card';
-      case 'voterId': return 'Voter ID';
-      case 'drivingLicense': return 'Driving License';
-      case 'rationCard': return 'Ration Card';
+      case 'aadhaar': return t.aadhaarCard;
+      case 'pan': return t.panCard;
+      case 'voterId': return t.voterId;
+      case 'drivingLicense': return t.drivingLicense;
+      case 'rationCard': return t.rationCard;
       default: return type;
     }
   };
@@ -246,7 +249,7 @@ export default function AdminPanel() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
-        <Header admin={authData?.admin} userType="admin" />
+        <Header admin={authData?.admin} userType="admin" language={language} setLanguage={setLanguage} />
         <div className="container mx-auto p-6">
           <Skeleton className="h-8 w-64 mb-6" />
           <div className="space-y-4">
@@ -261,20 +264,20 @@ export default function AdminPanel() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
-      <Header admin={authData?.admin} userType="admin" />
+      <Header admin={authData?.admin} userType="admin" language={language} setLanguage={setLanguage} />
       
       <div className="container mx-auto p-6 space-y-6">
         <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6 border border-red-200">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
             <Users className="w-8 h-8 mr-3 text-red-600" />
-            Admin Control Panel
+            {t.adminControlPanel}
           </h1>
           <p className="text-gray-600">
-            Review and manage citizen document change requests with comprehensive verification tools.
+            {t.reviewManageRequests}
           </p>
           {authData?.admin && (
             <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-red-600 text-white text-sm font-medium">
-              Officer: {authData.admin.name} | ID: {authData.admin.employeeId}
+              {t.officer}: {authData.admin.name} | ID: {authData.admin.employeeId}
             </div>
           )}
         </div>
@@ -284,7 +287,7 @@ export default function AdminPanel() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Requests</p>
+                  <p className="text-sm font-medium text-gray-600">{t.totalRequests}</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {Array.isArray(requests) ? requests.length : 0}
                   </p>
@@ -298,7 +301,7 @@ export default function AdminPanel() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pending Review</p>
+                  <p className="text-sm font-medium text-gray-600">{t.pendingReview}</p>
                   <p className="text-2xl font-bold text-yellow-600">
                     {Array.isArray(requests) ? requests.filter((req: any) => req.status === 'pending').length : 0}
                   </p>
@@ -312,7 +315,7 @@ export default function AdminPanel() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Processed Today</p>
+                  <p className="text-sm font-medium text-gray-600">{t.processedToday}</p>
                   <p className="text-2xl font-bold text-green-600">0</p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-600" />
@@ -325,7 +328,7 @@ export default function AdminPanel() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <FileText className="w-5 h-5 mr-2" />
-              Change Requests Management
+              {t.changeRequestsManagement}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -333,14 +336,14 @@ export default function AdminPanel() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Reference ID</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Document Type</TableHead>
-                    <TableHead>Field</TableHead>
-                    <TableHead>Change Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t.referenceId}</TableHead>
+                    <TableHead>{t.user}</TableHead>
+                    <TableHead>{t.documentType}</TableHead>
+                    <TableHead>{t.field}</TableHead>
+                    <TableHead>{t.changeType}</TableHead>
+                    <TableHead>{t.status}</TableHead>
+                    <TableHead>{t.submitted}</TableHead>
+                    <TableHead>{t.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -399,7 +402,7 @@ export default function AdminPanel() {
                             onClick={() => handleViewUserDocuments(request)}
                           >
                             <Search className="w-4 h-4 mr-1" />
-                            View Docs
+                            {t.viewDocs}
                           </Button>
                           {request.status === 'pending' && (
                             <Button
@@ -408,7 +411,7 @@ export default function AdminPanel() {
                               onClick={() => handleReviewRequest(request)}
                             >
                               <Eye className="w-4 h-4 mr-1" />
-                              Review
+                              {t.review}
                             </Button>
                           )}
                         </div>
@@ -420,7 +423,7 @@ export default function AdminPanel() {
             ) : (
               <div className="text-center py-8">
                 <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No change requests found</p>
+                <p className="text-gray-500">{t.noChangeRequests}</p>
               </div>
             )}
           </CardContent>
@@ -431,8 +434,8 @@ export default function AdminPanel() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-medium text-gray-900">Admin Session</h3>
-                <p className="text-sm text-gray-600">Securely logout from admin panel</p>
+                <h3 className="text-lg font-medium text-gray-900">{t.adminSession}</h3>
+                <p className="text-sm text-gray-600">{t.securelyLogoutAdmin}</p>
               </div>
               <Button 
                 variant="destructive" 
@@ -440,7 +443,7 @@ export default function AdminPanel() {
                 className="flex items-center"
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                Logout
+                {t.logout}
               </Button>
             </div>
           </CardContent>

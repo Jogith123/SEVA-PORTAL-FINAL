@@ -10,12 +10,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Shield, FileText, User, Settings } from "lucide-react";
+import { translations, type Language } from "@/i18n/translations";
 import "@/styles/global.css";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  const [language, setLanguage] = useState<Language>('en');
+  const t = translations[language];
   
   const [userForm, setUserForm] = useState({ aadhaarNumber: "", otp: "" });
   const [adminForm, setAdminForm] = useState({ employeeId: "", password: "" });
@@ -189,19 +193,23 @@ export default function LoginPage() {
       <div className="bg-[#1a1a1a] text-white py-1 px-4 text-xs">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <span>भारत सरकार | Government of India</span>
+            <span>{t.governmentOfIndia}</span>
             <div className="h-4 w-px bg-white/20"></div>
-            <a href="#" className="hover:text-orange-400">Screen Reader Access</a>
+            <a href="#" className="hover:text-orange-400">{t.screenReaderAccess}</a>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span>Font Size:</span>
+              <span>{t.fontSize}</span>
               <button className="hover:text-orange-400 px-1">A-</button>
               <button className="hover:text-orange-400 px-1 text-base">A</button>
               <button className="hover:text-orange-400 px-1 text-lg">A+</button>
             </div>
             <div className="h-4 w-px bg-white/20"></div>
-            <select className="bg-transparent border-0 text-xs hover:text-orange-400 cursor-pointer outline-none">
+            <select 
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+              className="bg-transparent border-0 text-xs hover:text-orange-400 cursor-pointer outline-none"
+            >
               <option value="en">English</option>
               <option value="hi">हिंदी</option>
               <option value="te">తెలుగు</option>
@@ -215,16 +223,16 @@ export default function LoginPage() {
       <div className="bg-blue-600 text-white py-2 px-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="text-sm flex items-center gap-6">
-            <span className="font-medium">Welcome to Digital Document Services Portal</span>
+            <span className="font-medium">{t.welcomeMessage}</span>
             <a href="#" className="hover:text-orange-400 flex items-center gap-1">
               <FileText className="w-4 h-4" />
-              User Manual
+              {t.userManual}
             </a>
           </div>
           <div className="flex items-center gap-6 text-sm">
-            <a href="#" className="hover:text-orange-400">Help</a>
-            <a href="#" className="hover:text-orange-400">Contact</a>
-            <a href="#" className="hover:text-orange-400">Feedback</a>
+            <a href="#" className="hover:text-orange-400">{t.help}</a>
+            <a href="#" className="hover:text-orange-400">{t.contact}</a>
+            <a href="#" className="hover:text-orange-400">{t.feedback}</a>
           </div>
         </div>
       </div>
@@ -232,14 +240,14 @@ export default function LoginPage() {
       {/* Main Header */}
       <div className="bg-white border-b shadow-sm py-4">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Shield className="w-8 h-8 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-blue-600">Digital Document Services</h1>
-              <p className="text-sm text-gray-600">Government of India</p>
-            </div>
+          <div className="flex flex-col items-center">
+            <img 
+              src="/emblem.svg" 
+              alt="National Emblem of India" 
+              className="w-16 h-16 mb-2" 
+            />
+            <h1 className="text-2xl font-bold text-blue-600">{t.portalTitle}</h1>
+            <p className="text-sm text-gray-600">{t.portalTagline}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="px-3 py-1 border-2 border-blue-600 rounded text-blue-600 font-semibold">G20</div>
@@ -332,8 +340,8 @@ export default function LoginPage() {
         <div className="lg:col-span-1 flex items-center">
           <Card className="shadow-lg w-full">
             <div className="bg-blue-600 text-white p-4 rounded-t-lg">
-              <h2 className="text-xl font-semibold">Secure Login Portal</h2>
-              <p className="text-sm opacity-90">Access your digital documents</p>
+              <h2 className="text-xl font-semibold">{t.secureLoginPortal}</h2>
+              <p className="text-sm opacity-90">{t.accessDocuments}</p>
             </div>
             <CardContent className="p-6">
               {error && (
@@ -343,18 +351,18 @@ export default function LoginPage() {
               )}
               <Tabs defaultValue="user" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="user" className="text-sm">Citizen Login</TabsTrigger>
-                  <TabsTrigger value="admin" className="text-sm">Government Login</TabsTrigger>
+                  <TabsTrigger value="user" className="text-sm">{t.citizenLogin}</TabsTrigger>
+                  <TabsTrigger value="admin" className="text-sm">{t.governmentLogin}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="user">
                   {!otpSent ? (
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="aadhaarNumber" className="font-medium">Aadhaar Number</Label>
+                        <Label htmlFor="aadhaarNumber" className="font-medium">{t.aadhaarNumber}</Label>
                         <Input
                           id="aadhaar"
                           type="text"
-                          placeholder="Enter 12-digit Aadhaar number"
+                          placeholder={t.enterAadhaar}
                           maxLength={12}
                           value={userForm.aadhaarNumber}
                           onChange={(e) => setUserForm({ ...userForm, aadhaarNumber: e.target.value })}
@@ -367,7 +375,7 @@ export default function LoginPage() {
                         className="w-full bg-blue-600 hover:bg-blue-700"
                         disabled={sendOtpMutation.isPending}
                       >
-                        {sendOtpMutation.isPending ? "Sending OTP..." : "Send OTP"}
+                        {sendOtpMutation.isPending ? t.sending : t.sendOTP}
                       </Button>
                     </div>
                   ) : (
@@ -384,11 +392,11 @@ export default function LoginPage() {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="otp" className="font-medium">Enter OTP</Label>
+                        <Label htmlFor="otp" className="font-medium">{t.enterOTP}</Label>
                         <Input
                           id="otp"
                           type="text"
-                          placeholder="Enter 6-digit OTP"
+                          placeholder={t.enterOTP}
                           maxLength={6}
                           value={userForm.otp}
                           onChange={(e) => setUserForm({ ...userForm, otp: e.target.value })}
@@ -396,7 +404,7 @@ export default function LoginPage() {
                         />
                         {maskedMobile && (
                           <p className="text-sm text-gray-600 text-center">
-                            OTP sent to +91-{maskedMobile}
+                            {t.otpSentTo} +91-{maskedMobile}
                           </p>
                         )}
                       </div>
@@ -407,14 +415,14 @@ export default function LoginPage() {
                           className="flex-1 bg-blue-600 hover:bg-blue-700"
                           disabled={verifyOtpMutation.isPending}
                         >
-                          {verifyOtpMutation.isPending ? "Verifying..." : "Verify & Login"}
+                          {verifyOtpMutation.isPending ? t.verifying : t.verifyLogin}
                         </Button>
                         <Button 
                           variant="outline"
                           onClick={resetUserLogin}
                           className="px-3"
                         >
-                          Change Number
+                          {t.changeNumber}
                         </Button>
                       </div>
                       
@@ -426,10 +434,10 @@ export default function LoginPage() {
                           className="text-sm"
                         >
                           {resendTimer > 0 
-                            ? `Resend OTP in ${resendTimer}s` 
+                            ? `${t.resendOTP} ${resendTimer}s` 
                             : sendOtpMutation.isPending 
-                              ? "Sending..." 
-                              : "Resend OTP"
+                              ? t.sending 
+                              : t.resendOTP
                           }
                         </Button>
                       </div>
@@ -440,22 +448,22 @@ export default function LoginPage() {
                 <TabsContent value="admin">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="employeeId" className="font-medium">Government Employee ID</Label>
+                      <Label htmlFor="employeeId" className="font-medium">{t.govEmployeeId}</Label>
                       <Input
                         id="employeeId"
                         type="text"
-                        placeholder="Enter Government ID"
+                        placeholder={t.enterGovId}
                         value={adminForm.employeeId}
                         onChange={(e) => setAdminForm({ ...adminForm, employeeId: e.target.value })}
                       />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="password" className="font-medium">Password</Label>
+                      <Label htmlFor="password" className="font-medium">{t.password}</Label>
                       <Input
                         id="password"
                         type="password"
-                        placeholder="Enter password"
+                        placeholder={t.enterPassword}
                         value={adminForm.password}
                         onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
                       />
@@ -466,7 +474,7 @@ export default function LoginPage() {
                       className="w-full bg-blue-600 hover:bg-blue-700"
                       disabled={adminLoginMutation.isPending}
                     >
-                      {adminLoginMutation.isPending ? "Logging in..." : "Login to Admin Panel"}
+                      {adminLoginMutation.isPending ? t.verifying : t.loginToAdmin}
                     </Button>
                   </div>
                 </TabsContent>
@@ -491,8 +499,8 @@ export default function LoginPage() {
             <div>
               <h4 className="font-semibold mb-4">Important Links</h4>
               <div className="space-y-2 text-sm">
-                <p><a href="#" className="hover:text-orange-400">Terms & Conditions</a></p>
-                <p><a href="#" className="hover:text-orange-400">Privacy Policy</a></p>
+                <p><a href="#" className="hover:text-orange-400">{t.termsConditions}</a></p>
+                <p><a href="#" className="hover:text-orange-400">{t.privacyPolicy}</a></p>
                 <p><a href="#" className="hover:text-orange-400">Accessibility Statement</a></p>
               </div>
             </div>
@@ -501,7 +509,7 @@ export default function LoginPage() {
               <div className="space-y-2 text-sm">
                 <p>This is a secure government portal</p>
                 <p>All transactions are encrypted</p>
-                <p>© 2025 Government of India</p>
+                <p>{t.copyright}</p>
               </div>
             </div>
           </div>

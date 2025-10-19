@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, FileText, X } from "lucide-react";
+import { translations, type Language } from "@/i18n/translations";
 
 interface EditDocumentModalProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface EditDocumentModalProps {
   document: any;
   documentType: string;
   onSuccess: () => void;
+  language?: Language;
 }
 
 export default function EditDocumentModal({
@@ -26,8 +28,10 @@ export default function EditDocumentModal({
   document,
   documentType,
   onSuccess,
+  language = 'en',
 }: EditDocumentModalProps) {
   const { toast } = useToast();
+  const t = translations[language];
   
   // All changes require admin approval
   const [fieldToUpdate, setFieldToUpdate] = useState("");
@@ -42,14 +46,14 @@ export default function EditDocumentModal({
     },
     onSuccess: (data) => {
       toast({
-        title: "Request Submitted",
-        description: `Your request has been submitted with reference ID: ${data.referenceId}`,
+        title: t.requestSubmitted,
+        description: `${t.requestSubmittedWith}: ${data.referenceId}`,
       });
       onSuccess();
       resetForm();
     },
     onError: (error: any) => {
-      setError(error.message || "Failed to submit request");
+      setError(error.message || t.failedToSubmit);
     },
   });
 
@@ -69,42 +73,42 @@ export default function EditDocumentModal({
 
   const getFieldOptions = () => {
     const commonFields = [
-      { value: "name", label: "Name" },
-      { value: "address", label: "Address" },
-      { value: "phone", label: "Phone Number" },
-      { value: "dateOfBirth", label: "Date of Birth" },
+      { value: "name", label: t.name },
+      { value: "address", label: t.address },
+      { value: "phone", label: t.phoneNumber },
+      { value: "dateOfBirth", label: t.dateOfBirth },
     ];
 
     switch (documentType) {
       case "aadhaar":
         return [
           ...commonFields,
-          { value: "email", label: "Email" },
-          { value: "fatherName", label: "Father's Name" },
+          { value: "email", label: t.email },
+          { value: "fatherName", label: t.fatherName },
         ];
       case "pan":
         return [
           ...commonFields,
-          { value: "fatherName", label: "Father's Name", type: "major" },
+          { value: "fatherName", label: t.fatherName, type: "major" },
         ];
       case "voterId":
         return [
           ...commonFields,
-          { value: "fatherName", label: "Father's Name" },
-          { value: "constituency", label: "Constituency" },
+          { value: "fatherName", label: t.fatherName },
+          { value: "constituency", label: t.constituency },
         ];
       case "drivingLicense":
         return [
           ...commonFields,
-          { value: "fatherName", label: "Father's Name" },
-          { value: "vehicleClass", label: "Vehicle Class" },
+          { value: "fatherName", label: t.fatherName },
+          { value: "vehicleClass", label: t.vehicleClass },
         ];
       case "rationCard":
         return [
-          { value: "name", label: "Name" },
-          { value: "address", label: "Address" },
-          { value: "familyMembers", label: "Family Members" },
-          { value: "category", label: "Category" },
+          { value: "name", label: t.name },
+          { value: "address", label: t.address },
+          { value: "familyMembers", label: t.familyMembers },
+          { value: "category", label: t.category },
         ];
       default:
         return commonFields;
@@ -139,7 +143,7 @@ export default function EditDocumentModal({
     }
 
     if (supportingFiles.length < 2) {
-      setError("All changes require 2 supporting documents");
+      setError(t.twoDocsRequired);
       return;
     }
 
@@ -156,11 +160,11 @@ export default function EditDocumentModal({
 
   const getDocumentTitle = () => {
     const titles: { [key: string]: string } = {
-      aadhaar: "Aadhaar Card",
-      pan: "PAN Card",
-      voterId: "Voter ID Card",
-      drivingLicense: "Driving License",
-      rationCard: "Ration Card",
+      aadhaar: t.aadhaarCard,
+      pan: t.panCard,
+      voterId: t.voterId,
+      drivingLicense: t.drivingLicense,
+      rationCard: t.rationCard,
     };
     return titles[documentType] || "Document";
   };
@@ -169,7 +173,7 @@ export default function EditDocumentModal({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit {getDocumentTitle()}</DialogTitle>
+          <DialogTitle>{t.editDocument} {getDocumentTitle()}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -181,18 +185,18 @@ export default function EditDocumentModal({
 
           <Card className="p-4">
             <div className="text-center">
-              <h4 className="font-semibold mb-2">Document Change Request</h4>
+              <h4 className="font-semibold mb-2">{t.documentChangeRequest}</h4>
               <p className="text-sm text-muted-foreground">
-                All changes require admin approval and supporting documents
+                {t.allChangesRequireApproval}
               </p>
             </div>
           </Card>
 
           <div className="space-y-2">
-            <Label htmlFor="field">Field to Update</Label>
+            <Label htmlFor="field">{t.fieldToUpdate}</Label>
             <Select value={fieldToUpdate} onValueChange={handleFieldChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Select field to update" />
+                <SelectValue placeholder={t.selectFieldToUpdate} />
               </SelectTrigger>
               <SelectContent>
                 {getFieldOptions().map((field) => (
@@ -200,7 +204,7 @@ export default function EditDocumentModal({
                     <div className="flex items-center justify-between w-full">
                       <span>{field.label}</span>
                       <Badge variant="secondary" className="ml-2">
-                        Admin Approval Required
+                        {t.adminApprovalRequired}
                       </Badge>
                     </div>
                   </SelectItem>
@@ -210,19 +214,19 @@ export default function EditDocumentModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="newValue">New Value</Label>
+            <Label htmlFor="newValue">{t.newValue}</Label>
             <Input
               id="newValue"
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
-              placeholder="Enter new value"
+              placeholder={t.enterNewValue}
             />
           </div>
 
           {/* All changes require supporting documents */}
           {(
             <div className="space-y-4">
-              <Label>Supporting Documents (Required for all changes)</Label>
+              <Label>{t.supportingDocumentsRequired}</Label>
               
               <div className="file-upload-area">
                 <input
@@ -235,16 +239,16 @@ export default function EditDocumentModal({
                 />
                 <label htmlFor="file-upload" className="cursor-pointer">
                   <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="font-medium mb-2">Drop files here or click to upload</p>
+                  <p className="font-medium mb-2">{t.dropFilesHere}</p>
                   <p className="text-sm text-muted-foreground">
-                    Upload 2 supporting documents to verify your identity (PDF, JPG, PNG)
+                    {t.uploadSupportingDocs}
                   </p>
                 </label>
               </div>
 
               {supportingFiles.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Uploaded Files ({supportingFiles.length}/2)</Label>
+                  <Label>{t.uploadedFiles} ({supportingFiles.length}/2)</Label>
                   {supportingFiles.map((file, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                       <div className="flex items-center gap-3">
@@ -277,7 +281,7 @@ export default function EditDocumentModal({
               className="flex-1 government-button"
               disabled={createRequestMutation.isPending}
             >
-              {createRequestMutation.isPending ? "Submitting..." : "Submit Request"}
+              {createRequestMutation.isPending ? t.submitting : t.submitRequest}
             </Button>
             <Button
               type="button"
@@ -285,7 +289,7 @@ export default function EditDocumentModal({
               onClick={onClose}
               disabled={createRequestMutation.isPending}
             >
-              Cancel
+              {t.cancel}
             </Button>
           </div>
         </form>

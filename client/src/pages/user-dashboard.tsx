@@ -5,17 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { translations, type Language } from "@/i18n/translations";
 import { 
   FileText, 
-  Edit, 
-  Eye, 
   CreditCard, 
   Vote, 
   Car, 
   ShoppingCart,
   CheckCircle,
   Clock,
-  AlertCircle,
   Bell,
   LogOut
 } from "lucide-react";
@@ -27,6 +25,8 @@ import ViewDocumentModal from "@/components/view-document-modal";
 export default function UserDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [language, setLanguage] = useState<Language>('en');
+  const t = translations[language];
 
   const [viewModal, setViewModal] = useState({ open: false, document: null, type: "" });
   const [editModal, setEditModal] = useState({ open: false, document: null, type: "" });
@@ -51,8 +51,8 @@ export default function UserDashboard() {
     onSuccess: () => {
       queryClient.clear();
       toast({
-        title: "Logged out successfully",
-        description: "You have been securely logged out.",
+        title: t.logout,
+        description: t.loggedOutSuccess,
       });
       // Force redirect to login page
       setTimeout(() => {
@@ -79,16 +79,16 @@ export default function UserDashboard() {
 
   const getDocumentDisplayName = (type: string) => {
     switch (type) {
-      case 'aadhaar': return 'Aadhaar Card';
-      case 'pan': return 'PAN Card';
-      case 'voterId': return 'Voter ID';
-      case 'drivingLicense': return 'Driving License';
-      case 'rationCard': return 'Ration Card';
+      case 'aadhaar': return t.aadhaarCard;
+      case 'pan': return t.panCard;
+      case 'voterId': return t.voterId;
+      case 'drivingLicense': return t.drivingLicense;
+      case 'rationCard': return t.rationCard;
       default: return type;
     }
   };
 
-  const getDocumentStatus = (type: string) => {
+  const getDocumentStatus = (type: string): "verified" | "pending" | "rejected" => {
     return "verified";
   };
 
@@ -106,7 +106,7 @@ export default function UserDashboard() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your documents...</p>
+            <p className="text-gray-600">{t.loadingDocuments}</p>
           </div>
         </div>
       </div>
@@ -115,17 +115,17 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
-      <Header user={authData?.user} userType="user" />
+      <Header user={authData?.user} userType="user" language={language} setLanguage={setLanguage} />
       
       <div className="container mx-auto p-6 space-y-6">
         <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-6 border border-orange-200">
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Welcome, {authData?.user?.name}!
+                {t.welcome}, {authData?.user?.name}!
               </h1>
               <p className="text-gray-600">
-                Manage your government documents and track change requests in one secure place.
+                {t.manageDocuments}
               </p>
               {authData?.user?.aadhaarNumber && (
                 <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-orange-600 text-white text-sm font-medium">
@@ -140,7 +140,7 @@ export default function UserDashboard() {
               className="flex items-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
             >
               <LogOut className="w-4 h-4" />
-              {logoutMutation.isPending ? "Logging out..." : "Logout"}
+              {logoutMutation.isPending ? t.loggingOut : t.logout}
             </Button>
           </div>
         </div>
@@ -150,7 +150,7 @@ export default function UserDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Documents</p>
+                  <p className="text-sm font-medium text-gray-600">{t.totalDocuments}</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {documentsData?.documents ? Object.keys(documentsData.documents).length : 0}
                   </p>
@@ -164,7 +164,7 @@ export default function UserDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Documents</p>
+                  <p className="text-sm font-medium text-gray-600">{t.activeDocuments}</p>
                   <p className="text-2xl font-bold text-green-600">
                     {documentsData?.documents ? Object.values(documentsData.documents).filter((doc: any) => doc).length : 0}
                   </p>
@@ -178,7 +178,7 @@ export default function UserDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pending Requests</p>
+                  <p className="text-sm font-medium text-gray-600">{t.pendingRequests}</p>
                   <p className="text-2xl font-bold text-yellow-600">
                     {changeRequestsData ? changeRequestsData.filter((req: any) => req.status === 'pending').length : 0}
                   </p>
@@ -190,7 +190,7 @@ export default function UserDashboard() {
         </div>
 
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Documents</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">{t.yourDocuments}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {documentsData?.documents && Object.entries(documentsData.documents).map(([type, document]: [string, any]) => {
               if (!document) return null;
@@ -202,6 +202,7 @@ export default function UserDashboard() {
                   documentType={type}
                   title={getDocumentDisplayName(type)}
                   status={getDocumentStatus(type)}
+                  language={language}
                   onView={() => handleViewDocument(type, document)}
                   onEdit={() => handleEditDocument(type, document)}
                 />
@@ -264,7 +265,7 @@ export default function UserDashboard() {
                 className="flex items-center"
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                {logoutMutation.isPending ? "Logging out..." : "Logout"}
+                {logoutMutation.isPending ? t.loggingOut : t.logout}
               </Button>
             </div>
           </CardContent>
@@ -276,6 +277,7 @@ export default function UserDashboard() {
         onClose={() => setViewModal({ open: false, document: null, type: "" })}
         document={viewModal.document}
         documentType={viewModal.type}
+        language={language}
       />
 
       <EditDocumentModal
@@ -283,6 +285,7 @@ export default function UserDashboard() {
         onClose={() => setEditModal({ open: false, document: null, type: "" })}
         document={editModal.document}
         documentType={editModal.type}
+        language={language}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ["/api/user/documents"] });
           queryClient.invalidateQueries({ queryKey: ["/api/user/change-requests"] });

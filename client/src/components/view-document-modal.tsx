@@ -4,12 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Download, FileText, Calendar, User, MapPin, Phone, Mail } from "lucide-react";
+import { translations, type Language } from "@/i18n/translations";
 
 interface ViewDocumentModalProps {
   open: boolean;
   onClose: () => void;
   document: any;
   documentType: string;
+  language?: Language;
 }
 
 export default function ViewDocumentModal({
@@ -17,16 +19,19 @@ export default function ViewDocumentModal({
   onClose,
   document,
   documentType,
+  language = 'en',
 }: ViewDocumentModalProps) {
   if (!document) return null;
+  
+  const t = translations[language];
 
   const getDocumentTitle = () => {
     const titles: { [key: string]: string } = {
-      aadhaar: "Aadhaar Card",
-      pan: "PAN Card",
-      voterId: "Voter ID Card",
-      drivingLicense: "Driving License",
-      rationCard: "Ration Card",
+      aadhaar: t.aadhaarCard,
+      pan: t.panCard,
+      voterId: t.voterId,
+      drivingLicense: t.drivingLicense,
+      rationCard: t.rationCard,
     };
     return titles[documentType] || "Document";
   };
@@ -76,19 +81,19 @@ export default function ViewDocumentModal({
         return (
           <>
             <div className="info-row">
-              <span className="info-label">Gender:</span>
+              <span className="info-label">{t.gender}:</span>
               <span className="info-value">{document.gender || "N/A"}</span>
             </div>
             <div className="info-row">
-              <span className="info-label">Father's Name:</span>
+              <span className="info-label">{t.fatherName}:</span>
               <span className="info-value">{document.fatherName || "N/A"}</span>
             </div>
             <div className="info-row">
-              <span className="info-label">Email:</span>
+              <span className="info-label">{t.email}:</span>
               <span className="info-value">{document.email || "N/A"}</span>
             </div>
             <div className="info-row">
-              <span className="info-label">Phone:</span>
+              <span className="info-label">{t.phone}:</span>
               <span className="info-value">{document.phone || "N/A"}</span>
             </div>
           </>
@@ -97,7 +102,7 @@ export default function ViewDocumentModal({
       case "pan":
         return (
           <div className="info-row">
-            <span className="info-label">Father's Name:</span>
+            <span className="info-label">{t.fatherName}:</span>
             <span className="info-value">{document.fatherName || "N/A"}</span>
           </div>
         );
@@ -106,15 +111,15 @@ export default function ViewDocumentModal({
         return (
           <>
             <div className="info-row">
-              <span className="info-label">Gender:</span>
+              <span className="info-label">{t.gender}:</span>
               <span className="info-value">{document.gender || "N/A"}</span>
             </div>
             <div className="info-row">
-              <span className="info-label">Father's Name:</span>
+              <span className="info-label">{t.fatherName}:</span>
               <span className="info-value">{document.fatherName || "N/A"}</span>
             </div>
             <div className="info-row">
-              <span className="info-label">Constituency:</span>
+              <span className="info-label">{t.constituency}:</span>
               <span className="info-value">{document.constituency || "N/A"}</span>
             </div>
           </>
@@ -124,15 +129,15 @@ export default function ViewDocumentModal({
         return (
           <>
             <div className="info-row">
-              <span className="info-label">Father's Name:</span>
+              <span className="info-label">{t.fatherName}:</span>
               <span className="info-value">{document.fatherName || "N/A"}</span>
             </div>
             <div className="info-row">
-              <span className="info-label">Vehicle Class:</span>
+              <span className="info-label">{t.vehicleClass}:</span>
               <span className="info-value">{document.vehicleClass || "N/A"}</span>
             </div>
             <div className="info-row">
-              <span className="info-label">Expiry Date:</span>
+              <span className="info-label">{t.expiryDate}:</span>
               <span className="info-value">{document.expiryDate || "N/A"}</span>
             </div>
           </>
@@ -142,11 +147,11 @@ export default function ViewDocumentModal({
         return (
           <>
             <div className="info-row">
-              <span className="info-label">Family Members:</span>
+              <span className="info-label">{t.familyMembers}:</span>
               <span className="info-value">{document.familyMembers || "N/A"}</span>
             </div>
             <div className="info-row">
-              <span className="info-label">Category:</span>
+              <span className="info-label">{t.category}:</span>
               <span className="info-value">
                 <Badge variant="secondary">{document.category || "N/A"}</Badge>
               </span>
@@ -165,7 +170,7 @@ export default function ViewDocumentModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <FileText className="w-6 h-6 text-primary" />
-            {getDocumentTitle()} Details
+            {getDocumentTitle()} {t.details}
           </DialogTitle>
         </DialogHeader>
 
@@ -175,7 +180,7 @@ export default function ViewDocumentModal({
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{getDocumentTitle()}</CardTitle>
-                <Badge className="status-verified">VERIFIED</Badge>
+                <Badge className="status-verified">{t.verified}</Badge>
               </div>
             </CardHeader>
             <CardContent>
@@ -193,17 +198,17 @@ export default function ViewDocumentModal({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5" />
-                Personal Information
+                {t.personalInformation}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="info-row">
-                <span className="info-label">Full Name:</span>
+                <span className="info-label">{t.fullName}:</span>
                 <span className="info-value">{document.name}</span>
               </div>
               
               <div className="info-row">
-                <span className="info-label">Date of Birth:</span>
+                <span className="info-label">{t.dateOfBirth}:</span>
                 <span className="info-value">{document.dateOfBirth || "N/A"}</span>
               </div>
 
@@ -217,12 +222,12 @@ export default function ViewDocumentModal({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="w-5 h-5" />
-                  Address Information
+                  {t.addressInformation}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="info-row">
-                  <span className="info-label">Address:</span>
+                  <span className="info-label">{t.address}:</span>
                   <span className="info-value">{document.address}</span>
                 </div>
               </CardContent>
@@ -234,24 +239,24 @@ export default function ViewDocumentModal({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
-                Document Information
+                {t.documentInformation}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="info-row">
-                <span className="info-label">Document Number:</span>
+                <span className="info-label">{t.documentNumber}:</span>
                 <span className="info-value font-mono">{getDocumentNumber()}</span>
               </div>
               
               {document.issueDate && (
                 <div className="info-row">
-                  <span className="info-label">Issue Date:</span>
+                  <span className="info-label">{t.issueDate}:</span>
                   <span className="info-value">{document.issueDate}</span>
                 </div>
               )}
               
               <div className="info-row">
-                <span className="info-label">Last Updated:</span>
+                <span className="info-label">{t.lastUpdated}:</span>
                 <span className="info-value">{formatDate(document.lastUpdated)}</span>
               </div>
             </CardContent>
@@ -261,10 +266,10 @@ export default function ViewDocumentModal({
           <div className="flex gap-4 pt-4">
             <Button onClick={handleDownload} className="flex-1 government-button">
               <Download className="w-4 h-4 mr-2" />
-              Download PDF
+              {t.downloadPDF}
             </Button>
             <Button variant="outline" onClick={onClose}>
-              Close
+              {t.close}
             </Button>
           </div>
         </div>
