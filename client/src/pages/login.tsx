@@ -21,7 +21,7 @@ export default function LoginPage() {
   const [adminForm, setAdminForm] = useState({ employeeId: "", password: "" });
   const [error, setError] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const [userEmail, setUserEmail] = useState("");
+  const [maskedMobile, setMaskedMobile] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
 
   const sendOtpMutation = useMutation({
@@ -52,11 +52,11 @@ export default function LoginPage() {
     },
     onSuccess: (data) => {
       setOtpSent(true);
-      setUserEmail(data.email);
+      setMaskedMobile(data.maskedMobile);
       setError("");
       toast({
         title: "OTP Sent",
-        description: `OTP has been sent to ${data.email}`,
+        description: `OTP has been sent to +91-${data.maskedMobile}`,
       });
       // Start resend timer (60 seconds)
       setResendTimer(60);
@@ -173,7 +173,7 @@ export default function LoginPage() {
   const resetUserLogin = () => {
     setOtpSent(false);
     setUserForm({ aadhaarNumber: "", otp: "" });
-    setUserEmail("");
+    setMaskedMobile("");
     setError("");
     setResendTimer(0);
   };
@@ -394,9 +394,9 @@ export default function LoginPage() {
                           onChange={(e) => setUserForm({ ...userForm, otp: e.target.value })}
                           className="text-center tracking-wider text-lg"
                         />
-                        {userEmail && (
+                        {maskedMobile && (
                           <p className="text-sm text-gray-600 text-center">
-                            OTP sent to {userEmail.replace(/(.{2}).*(@.*)/, '$1****$2')}
+                            OTP sent to +91-{maskedMobile}
                           </p>
                         )}
                       </div>

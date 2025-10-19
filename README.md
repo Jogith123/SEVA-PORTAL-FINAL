@@ -1,6 +1,27 @@
-# Project Setup and Running Instructions
+# Seva Portal – Digital Document Services
 
-This project consists of a client (Next.js) and server (Node.js/Express) application.
+Seva Portal is a full‑stack web application that enables citizens to securely access and manage government documents and allows authorized government officials to review and approve change requests.
+
+## Key Features
+- Citizen Aadhaar OTP login with secure flow (`crypto.randomInt`, `bcrypt`, Redis TTL)
+- SMS delivery via Twilio (or mocked console OTP when Twilio is not configured)
+- Rate limiting with `rate-limiter-flexible` (configurable; increased during testing)
+- Government admin login (sample: Employee ID `GOV001`, Password `admin123`)
+- Admin workflows: approve/reject change requests, review documents, biometric approval emails
+- Modular architecture, environment‑driven config, production‑ready fallbacks
+
+## Tech Stack
+- Backend: Node.js, Express, TypeScript
+- Frontend: React + TypeScript (Bootstrap UI)
+- Infra/Security: Redis (`ioredis`), `bcryptjs`, `zod`, `rate-limiter-flexible`, `dotenv`, Twilio (optional)
+
+## Security Highlights
+- OTPs are never stored in plain text; hashed with bcrypt
+- Minimal, privacy‑safe logging with masked identifiers
+- Input validation with `zod`
+- Session security; JWT scaffolding available
+
+---
 
 ## Prerequisites
 

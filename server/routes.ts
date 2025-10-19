@@ -6,7 +6,7 @@ import {
   type User, type Admin 
 } from "@shared/schema";
 import { z } from "zod";
-import authRouter, { initializeEmailTransporter, sendBiometricApprovalEmail } from "./routes/auth";
+import authRouter, { initializeEmailTransporter, initializeTwilioClient, sendBiometricApprovalEmail } from "./routes/auth";
 
 interface AuthenticatedRequest extends Express.Request {
   user?: User;
@@ -20,6 +20,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     initializeEmailTransporter();
   } catch (error) {
     console.error('Failed to initialize email transporter:', error);
+  }
+
+  // Initialize Twilio SMS client
+  try {
+    initializeTwilioClient();
+  } catch (error) {
+    console.error('Failed to initialize Twilio client:', error);
   }
 
   // Mount auth routes
