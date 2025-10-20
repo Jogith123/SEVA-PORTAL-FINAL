@@ -40,8 +40,18 @@ export default function EditDocumentModal({
   const [error, setError] = useState("");
 
   const createRequestMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/user/change-requests", data);
+    mutationFn: async (formData: FormData) => {
+      const response = await fetch("/api/user/change-requests", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to submit request");
+      }
+      
       return response.json();
     },
     onSuccess: (data) => {
@@ -147,15 +157,19 @@ export default function EditDocumentModal({
       return;
     }
 
-    const supportingDocuments = supportingFiles.map(file => file.name).join(",");
-
-    createRequestMutation.mutate({
-      documentType,
-      changeType: "major", // All changes require admin approval
-      fieldToUpdate,
-      newValue: newValue.trim(),
-      supportingDocuments,
+    // Create FormData to send files
+    const formData = new FormData();
+    formData.append("documentType", documentType);
+    formData.append("changeType", "major"); // All changes require admin approval
+    formData.append("fieldToUpdate", fieldToUpdate);
+    formData.append("newValue", newValue.trim());
+    
+    // Append each file with the field name "supportingFiles"
+    supportingFiles.forEach((file) => {
+      formData.append("supportingFiles", file);
     });
+
+    createRequestMutation.mutate(formData);
   };
 
   const getDocumentTitle = () => {

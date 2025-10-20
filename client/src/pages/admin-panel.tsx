@@ -167,7 +167,7 @@ export default function AdminPanel() {
       // First approve the change request
       await approveMutation.mutateAsync({ id: selectedRequest.id, comments });
 
-      // Then send the biometric approval email
+      // Then send the biometric approval notification
       const biometricResponse = await apiRequest(
         "POST", 
         "/api/auth/admin/approve-biometric", 
@@ -177,14 +177,21 @@ export default function AdminPanel() {
         }
       );
 
-      if (!biometricResponse.ok) {
-        throw new Error('Failed to send biometric approval email');
-      }
+      const biometricData = await biometricResponse.json();
 
-      toast({
-        title: "Success",
-        description: "Request approved and biometric verification email sent.",
-      });
+      // Show appropriate success message based on email status
+      if (biometricData.emailSent) {
+        toast({
+          title: "Success",
+          description: "Request approved and biometric verification email sent successfully.",
+        });
+      } else {
+        toast({
+          title: "Approval Successful",
+          description: "Request approved, but email notification could not be sent. Please inform the user manually.",
+          variant: "default",
+        });
+      }
     } catch (error) {
       console.error('Error in approval process:', error);
       toast({
@@ -487,20 +494,66 @@ export default function AdminPanel() {
                   <div className="mt-2 space-y-2">
                     {selectedRequest?.supportingDocuments ? (
                       selectedRequest.supportingDocuments.split(",").filter(Boolean).map((doc: string, index: number) => {
-                        const filename = doc.split("/").pop() || "";
+                        // Extract filename from Cloudinary URL or local path
+                        const filename = doc.split("/").pop()?.split("?")[0] || `Document ${index + 1}`;
+                        const isPDF = doc.toLowerCase().includes('.pdf');
+                        
+                        // For Cloudinary URLs, provide both possible formats
+                        const originalUrl = doc;
+                        let alternateUrl = null;
+                        
+                        if (doc.includes('cloudinary.com')) {
+                          if (isPDF) {
+                            // If URL has /image/upload/, create alternate with /raw/upload/
+                            if (doc.includes('/image/upload/')) {
+                              alternateUrl = doc.replace('/image/upload/', '/raw/upload/');
+                            }
+                            // If URL has /raw/upload/, create alternate with /image/upload/
+                            else if (doc.includes('/raw/upload/')) {
+                              alternateUrl = doc.replace('/raw/upload/', '/image/upload/');
+                            }
+                          }
+                        }
+                        
+                        // For Cloudinary PDFs, force download instead of view
+                        const handleDownload = (url: string) => {
+                          // Add fl_attachment flag to force download
+                          let downloadUrl = url;
+                          if (url.includes('cloudinary.com') && isPDF) {
+                            // Insert fl_attachment before the version or filename
+                            const parts = url.split('/upload/');
+                            if (parts.length === 2) {
+                              downloadUrl = `${parts[0]}/upload/fl_attachment/${parts[1]}`;
+                            }
+                          }
+                          window.open(downloadUrl, "_blank");
+                        };
+                        
                         return (
-                          <div key={index} className="flex items-center gap-2">
+                          <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded">
                             <FileText className="w-4 h-4" />
-                            <span>{filename}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                window.open(`/uploads/${filename}`, "_blank");
-                              }}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
+                            <span className="flex-1 text-sm truncate" title={filename}>{filename}</span>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => handleDownload(originalUrl)}
+                                title="Download document"
+                              >
+                                <Download className="w-4 h-4 mr-1" />
+                                Download
+                              </Button>
+                              {alternateUrl && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDownload(alternateUrl)}
+                                  title="Try alternate format download"
+                                >
+                                  Alt Download
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         );
                       })

@@ -7,6 +7,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import authRouter, { initializeEmailTransporter, initializeTwilioClient, sendBiometricApprovalEmail } from "./routes/auth";
+import { upload } from "./config/cloudinary";
 
 interface AuthenticatedRequest extends Express.Request {
   user?: User;
@@ -101,28 +102,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get user details
       const user = await storage.getUser(userId);
-      if (!user || !user.email || !user.name) {
+      if (!user) {
         return res.status(404).json({
-          error: 'User not found or missing required information'
+          error: 'User not found'
         });
       }
 
-      // Send approval email using the existing transporter
-      await sendBiometricApprovalEmail(user.email, user.name);
+      // Try to send approval email, but don't fail if email is not configured
+      let emailSent = false;
+      let emailError = null;
+      
+      if (user.email && user.name) {
+        try {
+          await sendBiometricApprovalEmail(user.email, user.name);
+          emailSent = true;
+          console.log(`✅ Biometric approval email sent to ${user.email}`);
+        } catch (error) {
+          emailError = error instanceof Error ? error.message : 'Unknown error';
+          console.warn(`⚠️  Email sending failed for user ${userId}: ${emailError}`);
+          console.warn('Approval will proceed without email notification');
+        }
+      } else {
+        console.warn(`⚠️  User ${userId} has no email configured, skipping email notification`);
+      }
       
       res.json({
-        message: 'Biometric verification approval sent successfully',
+        success: true,
+        message: emailSent 
+          ? 'Biometric verification approval sent successfully with email notification' 
+          : 'Biometric verification approved (email notification could not be sent)',
+        emailSent,
+        emailError,
         user: {
           id: user.id,
           name: user.name,
-          email: user.email
+          email: user.email || 'Not configured'
         }
       });
       
     } catch (error) {
       console.error('Biometric Approval Error:', error);
       res.status(500).json({
-        error: 'Failed to send approval notification. Please try again.'
+        error: 'Failed to process approval. Please try again.',
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -230,10 +252,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Change request routes
-  app.post("/api/user/change-requests", requireUser, async (req: any, res) => {
+  app.post("/api/user/change-requests", requireUser, upload.array("supportingFiles", 2), async (req: any, res) => {
     try {
       const userId = req.user.id;
       const { documentType, fieldToUpdate, newValue, changeType } = req.body;
+      
+      // Get uploaded file URLs from Cloudinary
+      const uploadedFiles = req.files as any[];
+      const supportingDocuments = uploadedFiles && uploadedFiles.length > 0 
+        ? uploadedFiles.map(file => file.path).join(",")
+        : "";
 
       // Get current value for comparison
       let currentValue;
@@ -329,10 +357,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const referenceId = `REQ${Date.now()}${Math.floor(Math.random() * 1000)}`;
         
         const requestData = {
-          ...req.body,
+          documentType,
+          fieldToUpdate,
+          newValue,
+          changeType,
           userId,
           referenceId,
           oldValue: String(currentValue || ""),
+          supportingDocuments, // Use Cloudinary URLs
         };
 
         const validatedData = insertChangeRequestSchema.parse(requestData);
